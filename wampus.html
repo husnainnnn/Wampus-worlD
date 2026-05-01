@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wumpus World</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Google+Sans+Flex:opsz,wght@6..144,1..1000&family=Press+Start+2P&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<style>
+  body { font-family: 'Google Sans Flex', sans-serif; }
+  .retro-font { font-family: 'Press Start 2P', cursive; }
+</style>
+</head>
+<body class="h-screen overflow-hidden bg-slate-100 px-4 py-6 text-slate-900 sm:px-6 flex flex-col">
+<div class="mx-auto max-w-7xl flex flex-col flex-1 min-h-0">
+
+  <div class="mb-6 border-b border-slate-200 pb-5 flex-shrink-0">
+    <div class="text-xl font-bold tracking-tight retro-font">Wumpus World</div>
+    <div class="mt-1 text-sm text-slate-500">Dynamic Propositional Logic Agent using Inference.</div>
+  </div>
+
+  <div class="overflow-hidden rounded-lg border border-slate-200 bg-white flex-1 min-h-0 flex flex-col shadow-sm">
+    <div class="flex flex-1 min-h-0 divide-x divide-slate-200">
+      <!-- Left: World Grid Section -->
+      <div class="flex flex-col flex-1 min-w-0">
+        <div class="border-b border-slate-200 px-4 py-3 flex-shrink-0 flex items-center justify-between gap-4 bg-slate-50/30">
+          <div class="flex items-center gap-4">
+            <div class="text-sm font-medium">World Grid</div>
+            <div id="percepts-box" class="flex items-center gap-1.5">
+              <span class="text-[10px] font-medium text-slate-400">None</span>
+            </div>
+          </div>
+          <button onclick="openSettings()" class="rounded-md p-1.5 text-slate-500 hover:bg-slate-100 transition" title="Settings">
+            <i data-lucide="settings" class="h-4 w-4"></i>
+          </button>
+        </div>
+        <div class="flex flex-col gap-2 p-4 flex-1 min-h-0 overflow-auto">
+          <div class="grid grid-cols-3 gap-x-2 gap-y-1 text-[10px] text-slate-500 pb-2 border-b border-slate-100">
+            <div class="flex items-center gap-1.5"><div class="h-2.5 w-2.5 rounded-sm border border-sky-300 bg-sky-50"></div>Agent</div>
+            <div class="flex items-center gap-1.5"><div class="h-2.5 w-2.5 rounded-sm border border-emerald-300 bg-emerald-50"></div>Safe</div>
+            <div class="flex items-center gap-1.5"><div class="h-2.5 w-2.5 rounded-sm border border-slate-200 bg-slate-100"></div>Unknown</div>
+            <div class="flex items-center gap-1.5"><div class="h-2.5 w-2.5 rounded-sm border border-slate-200 bg-white"></div>Visited</div>
+            <div class="flex items-center gap-1.5"><div class="h-2.5 w-2.5 rounded-sm border border-rose-300 bg-rose-50"></div>Pit</div>
+            <div class="flex items-center gap-1.5"><div class="h-2.5 w-2.5 rounded-sm border border-amber-300 bg-amber-50"></div>Wumpus</div>
+          </div>
+          <div class="flex flex-col items-center gap-2 py-2">
+            <div id="grid" class="grid gap-1"></div>
+          </div>
+        </div>
+        <div class="border-t border-slate-200 p-3 flex-shrink-0 bg-slate-50/30">
+          <div class="flex gap-2">
+            <button class="inline-flex flex-1 items-center justify-center gap-2 rounded-md border border-slate-900 bg-slate-900 px-3 py-2 text-sm font-medium text-white transition hover:bg-slate-800" onclick="initGame()">
+              <i data-lucide="rotate-ccw" class="h-4 w-4"></i>
+              <span>New Episode</span>
+            </button>
+            <button class="inline-flex w-fit items-center justify-center gap-2 rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-900 transition hover:bg-slate-50" onclick="toggleAuto()" id="auto-btn">
+              <i data-lucide="play" class="h-4 w-4"></i>
+            </button>
+            <button class="inline-flex w-fit items-center justify-center gap-2 rounded-md border border-slate-200 bg-transparent px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-50 hover:text-slate-900" onclick="stepAgent()">
+              <i data-lucide="step-forward" class="h-4 w-4"></i>
+            </button>
+          </div>
+        </div>
+        <div id="status-bar" class="px-4 py-2.5 text-center font-mono text-xs text-slate-400 border-t border-slate-100 flex-shrink-0 transition-colors">Ready</div>
+      </div>
+
+      <!-- Right: Tabbed Sidebar Section -->
+      <div class="flex flex-col w-[320px] flex-shrink-0 bg-slate-50/10">
+        <div class="flex border-b border-slate-200 bg-slate-50/50 p-1 gap-1 flex-shrink-0">
+          <button onclick="switchTab('metrics')" id="tab-metrics" class="tab-btn flex-1 rounded-md px-3 py-1.5 text-[11px] font-semibold transition-all bg-white text-slate-900 shadow-sm border border-slate-200">Metrics</button>
+          <button onclick="switchTab('kb')" id="tab-kb" class="tab-btn flex-1 rounded-md px-3 py-1.5 text-[11px] font-semibold transition-all text-slate-500 hover:text-slate-700 hover:bg-slate-100/50">KB</button>
+          <button onclick="switchTab('log')" id="tab-log" class="tab-btn flex-1 rounded-md px-3 py-1.5 text-[11px] font-semibold transition-all text-slate-500 hover:text-slate-700 hover:bg-slate-100/50">Log</button>
+        </div>
+        
+        <div class="flex-1 min-h-0 relative">
+          <div id="pane-metrics" class="tab-pane absolute inset-0 overflow-y-auto px-4 py-2">
+            <div class="flex items-center justify-between border-b border-slate-100 py-2.5">
+              <span class="text-xs text-slate-500">Inference Steps</span>
+              <span class="font-mono text-sm font-medium" id="m-infer">0</span>
+            </div>
+            <div class="flex items-center justify-between border-b border-slate-100 py-2.5">
+              <span class="text-xs text-slate-500">Cells Visited</span>
+              <span class="font-mono text-sm font-medium" id="m-visited">0</span>
+            </div>
+            <div class="flex items-center justify-between border-b border-slate-100 py-2.5">
+              <span class="text-xs text-slate-500">Safe Proven</span>
+              <span class="font-mono text-sm font-medium" id="m-safe">0</span>
+            </div>
+            <div class="flex items-center justify-between py-2.5">
+              <span class="text-xs text-slate-500">KB Clauses</span>
+              <span class="font-mono text-sm font-medium" id="m-kb">0</span>
+            </div>
+          </div>
+
+          <div id="pane-kb" class="tab-pane absolute inset-0 overflow-y-auto px-4 py-3 hidden">
+            <div class="font-mono text-[10px] leading-relaxed text-slate-500" id="kb-display">-</div>
+          </div>
+
+          <div id="pane-log" class="tab-pane absolute inset-0 overflow-y-auto px-4 py-3 hidden">
+            <div class="font-mono text-[10px] leading-relaxed text-slate-500" id="log"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<!-- Settings Modal -->
+<div id="settings-modal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-slate-900/40 backdrop-blur-sm transition-opacity">
+  <div class="w-full max-w-sm rounded-xl border border-slate-200 bg-white p-6 shadow-2xl animate-in fade-in zoom-in duration-200">
+    <div class="mb-5 flex items-center justify-between">
+      <h3 class="text-lg font-semibold text-slate-900">Game Settings</h3>
+      <button onclick="closeSettings()" class="rounded-md p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition">
+        <i data-lucide="x" class="h-5 w-5"></i>
+      </button>
+    </div>
+    
+    <div class="space-y-6">
+      <div>
+        <label class="mb-2 block text-xs font-semibold text-slate-500">Grid Dimensions</label>
+        <div class="flex items-center gap-3">
+          <div class="flex-1">
+            <span class="mb-1 block text-[10px] text-slate-400">Rows</span>
+            <input type="number" id="rows" value="4" min="3" max="8" class="w-full rounded-md border border-slate-300 bg-white px-3 py-2 font-mono text-sm text-slate-900 outline-none transition focus:border-slate-500 focus:ring-4 focus:ring-slate-200">
+          </div>
+          <span class="mt-5 text-slate-300">
+            <i data-lucide="x" class="h-3 w-3"></i>
+          </span>
+          <div class="flex-1">
+            <span class="mb-1 block text-[10px] text-slate-400">Columns</span>
+            <input type="number" id="cols" value="4" min="3" max="8" class="w-full rounded-md border border-slate-300 bg-white px-3 py-2 font-mono text-sm text-slate-900 outline-none transition focus:border-slate-500 focus:ring-4 focus:ring-slate-200">
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <label class="mb-2 block text-xs font-semibold text-slate-500">Simulation Speed</label>
+        <div class="flex overflow-hidden rounded-lg border border-slate-200">
+          <button class="speed-btn flex-1 border-r border-slate-200 px-3 py-2.5 text-xs font-medium text-slate-500 transition hover:bg-slate-50" onclick="setSpeed(900,this)">Slow</button>
+          <button class="speed-btn flex-1 border-r border-slate-200 bg-slate-900 px-3 py-2.5 text-xs font-medium text-white transition" onclick="setSpeed(450,this)">Med</button>
+          <button class="speed-btn flex-1 px-3 py-2.5 text-xs font-medium text-slate-500 transition hover:bg-slate-50" onclick="setSpeed(150,this)">Fast</button>
+        </div>
+      </div>
+
+      <div class="pt-2">
+        <button onclick="initGame(); closeSettings();" class="flex w-full items-center justify-center gap-2 rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800">
+          <i data-lucide="play" class="h-4 w-4"></i>
+          <span>Apply & Restart</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="script.js"></script>
+</body>
+</html>
