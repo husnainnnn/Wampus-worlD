@@ -35,13 +35,13 @@ project-folder/
 1. Clone the repository:
 
 ```
-git clone https://github.com/your-username/your-repo-name.git
+git clone https://github.com/husnainnnn/Wampus-worlD.git
 ```
 
 2. Open the project folder:
 
 ```
-cd your-repo-name
+cd Wampus-worlD
 ```
 
 3. Install required libraries:
@@ -75,8 +75,7 @@ You can add screenshots or sample outputs here to better explain your project re
 
 ## 👨‍💻 Author
 
-Husnain
-BS Computer Science
+Husnain Sattar
 
 ## 📜 License
 
